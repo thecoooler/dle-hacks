@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>Rating Edit</name>
+	<description>Установка рейтинга новости при добавлении и изменение при редактировании</description>
+	<icon></icon>
+	<version></version>
+	<dleversion></dleversion>
+	<versioncompare>less</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>0</mnotice>
+	<mysqlinstall><![CDATA[]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[]]></mysqlenable>
+	<mysqldisable><![CDATA[]]></mysqldisable>
+	<mysqldelete><![CDATA[]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[]]></notice>
+	<file name="engine/inc/addnews.php">
+		<operation action="before">
+			<searchcode><![CDATA[							<div class="form-group">
+							  <label class="control-label col-md-2">{$lang['addnews_option']}</label>]]></searchcode>
+			<replacecode><![CDATA[<div class="form-group">
+    <label class="control-label col-md-2 col-sm-3">Рейтинг:</label>
+    <div class="col-md-10 col-sm-9">
+        Общая оценка: <input type="number" step="0.1" name="rating_score" class="form-control" style="width: 80px;" maxlength="10"> &nbsp;&nbsp;
+        Кол-во голосов: <input type="number" name="rating_votes" class="form-control" style="width: 80px;" maxlength="200">
+    </div>
+</div>]]></replacecode>
+		</operation>
+		<operation action="after">
+			<searchcode><![CDATA[$expires_action = intval($_POST['expires_action']);]]></searchcode>
+			<replacecode><![CDATA[if ( !empty($_POST['rating_score']) && !empty($_POST['rating_votes']) ) {
+    $rating_score = floatval($_POST['rating_score']);
+    $rating_votes = intval($_POST['rating_votes']);
+
+    $rating_count = intval($rating_score * $rating_votes);
+
+    $db->query("UPDATE " . PREFIX . "_post_extras SET rating = '{$rating_count}', vote_num = '{$rating_votes}' WHERE news_id = '{$id}'");
+}]]></replacecode>
+		</operation>
+	</file>
+	<file name="engine/inc/editnews.php">
+		<operation action="before">
+			<searchcode><![CDATA[							<div class="form-group">
+							  <label class="control-label col-md-2">{$lang['news_edit_reason']}</label>]]></searchcode>
+			<replacecode><![CDATA[<div class="form-group">
+    <label class="control-label col-md-2 col-sm-3">Рейтинг:</label>
+    <div class="col-md-10 col-sm-9">
+        Общая оценка: <input type="number" step="0.1" name="rating_score" class="form-control" style="width: 80px;" maxlength="10" value="{$rating_score}"> &nbsp;&nbsp;
+        Кол-во голосов: <input type="number" name="rating_votes" class="form-control" style="width: 80px;" maxlength="200" value="{$row['vote_num']}">
+    </div>
+</div>]]></replacecode>
+		</operation>
+		<operation action="before">
+			<searchcode><![CDATA[$db->query( "DELETE FROM " . PREFIX . "_xfsearch]]></searchcode>
+			<replacecode><![CDATA[if ( !empty($_POST['rating_score']) && !empty($_POST['rating_votes']) ) {
+    $rating_score = floatval($_POST['rating_score']);
+    $rating_votes = intval($_POST['rating_votes']);
+
+    $rating_count = intval($rating_score * $rating_votes);
+
+    $db->query("UPDATE " . PREFIX . "_post_extras SET rating = '{$rating_count}', vote_num = '{$rating_votes}' WHERE news_id = '{$item_db[0]}'");
+}]]></replacecode>
+		</operation>
+		<operation action="after">
+			<searchcode><![CDATA[$access = permload( $row['access'] );]]></searchcode>
+			<replacecode><![CDATA[$rating_score = ($row['rating'] && $row['vote_num']) ? round($row['rating'] / $row['vote_num'], 1) : '0.0';]]></replacecode>
+		</operation>
+	</file>
+</dleplugin>
