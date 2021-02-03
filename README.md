@@ -4,3 +4,4 @@
 
 ## Список хаков
 - [Rating Edit](https://github.com/thecoooler/dle-hacks/tree/master/rating-edit)
+    Установка рейтинга новости при добавлении и изменение при редактировании
