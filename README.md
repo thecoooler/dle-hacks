@@ -8,3 +8,7 @@
 Вывод количества новостей, в которых заполнено поле в списке доп-полей
 - [Categories Count](https://github.com/thecoooler/dle-hacks/tree/master/categories-count)    
 Вывод количества новостей, в которых указана категория в списке категорий
+- [Category Name](https://github.com/thecoooler/dle-hacks/tree/master/category-name)    
+Вывод названия первой категории новости тегом {category-name}
+- [Xfield File Download](https://github.com/thecoooler/dle-hacks/tree/master/xfield-file-download)    
+Скачивание файла загруженного в доп-поле

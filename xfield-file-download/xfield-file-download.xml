@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>Xfield File Download</name>
+	<description>Скачивание файла загруженного в доп-поле</description>
+	<icon></icon>
+	<version></version>
+	<dleversion></dleversion>
+	<versioncompare>less</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>0</mnotice>
+	<mysqlinstall><![CDATA[]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[]]></mysqlenable>
+	<mysqldisable><![CDATA[]]></mysqldisable>
+	<mysqldelete><![CDATA[]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[]]></notice>
+	<file name="engine/inc/xfields.php">
+		<operation action="after">
+			<searchcode><![CDATA[<script>
+<!--
+jQuery(function($){
+    onCategoryChange($('#category'));
+});
+// -->
+</script>]]></searchcode>
+			<replacecode><![CDATA[<script>
+document.addEventListener('DOMContentLoaded', () => {
+ 	const observer = new MutationObserver(event => {
+      	event.forEach(item => {
+         	 update_button(item.target);
+        });
+    });
+  	const update_button = (item) => {
+		const name = item.getAttribute('id').replace('uploadedfile_', '');
+      	const value = item.parentNode.querySelector('input').value;
+      	const file_id = value.match(/attachment=([0-9]+)/);
+
+      	const button = document.getElementById('donwload_file_' + name);
+      	if ( button ) button.remove();
+
+      	if ( file_id ) {
+        	item.insertAdjacentHTML('afterend', '<a href="/index.php?do=download&amp;id=' + file_id[1] + '" target="_blank" id="donwload_file_' + name + '" class="btn btn-sm btn-red bg-green-600 btn-raised legitRipple position-right"><i class="fa fa-download position-left"></i> Скачать</a>');
+        }
+    }
+
+  	document.querySelectorAll('span[id^="uploadedfile_"]').forEach(item => {
+     	observer.observe(item, {
+            childList: true,
+            subtree: false
+        });
+
+      	update_button(item);
+    });
+});
+</script>]]></replacecode>
+		</operation>
+	</file>
+	<file name="engine/download.php">
+		<operation action="replace">
+			<searchcode><![CDATA[	} elseif ( !$row['news_id'] ) {
+		$perm = false;
+	}]]></searchcode>
+			<replacecode><![CDATA[	} elseif ( !$row['news_id'] && $member_id['user_group'] > 3 ) {
+		$perm = false;
+	}]]></replacecode>
+		</operation>
+	</file>
+</dleplugin>
