@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>Text Limit Tag</name>
+	<description>Тег для обрезки текста до длины X [limit max=&quot;X&quot;]текст[/limit]. Данный вариант добавляет троеточие в конце при обрезке [limit max=&quot;X&quot; dots]текст[/limit]</description>
+	<icon></icon>
+	<version></version>
+	<dleversion></dleversion>
+	<versioncompare>less</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>0</mnotice>
+	<mysqlinstall><![CDATA[]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[]]></mysqlenable>
+	<mysqldisable><![CDATA[]]></mysqldisable>
+	<mysqldelete><![CDATA[]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[]]></notice>
+	<file name="engine/modules/main.php">
+		<operation action="before">
+			<searchcode><![CDATA[echo $tpl->result['main'];]]></searchcode>
+			<replacecode><![CDATA[$tpl->result['main'] = preg_replace_callback("'\\[limit max=\"([0-9]+)\"( dots)?\\](.*?)\\[/limit\\]'s", function($match) {
+	$match[1] = intval($match[1]);
+	$match[2] = trim($match[2]);
+	$match[3] = trim($match[3]);
+
+  	if ( trim($match[2]) == 'dots' && $match[1] > 3 ) {
+     	$match[1] = $match[1] - 3;
+    }
+
+	if ( mb_strlen($match[3]) > $match[1] ) {
+		$match[3] = mb_substr($match[3], 0, $match[1]);
+
+		if ( $temp_dmax = mb_strrpos($match[3], ' ') ) {
+			$match[3] = mb_substr($match[3], 0, $temp_dmax);
+		}
+
+		if ( trim($match[2]) == 'dots' ) {
+			$match[3] .= '...';
+		}
+	}
+
+	return $match[3];
+}, $tpl->result['main']);]]></replacecode>
+		</operation>
+	</file>
+</dleplugin>

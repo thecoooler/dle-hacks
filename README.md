@@ -12,3 +12,5 @@
 Вывод названия первой категории новости тегом {category-name}
 - [Xfield File Download](https://github.com/thecoooler/dle-hacks/tree/master/xfield-file-download)    
 Скачивание файла загруженного в доп-поле
+- [Text Limit Tag](https://github.com/thecoooler/dle-hacks/tree/master/text-limit-tag)    
+Тег для обрезки текста до длины X [limit max="X"]текст[/limit]. Данный вариант добавляет троеточие в конце при обрезке [limit max="X" dots]текст[/limit]
