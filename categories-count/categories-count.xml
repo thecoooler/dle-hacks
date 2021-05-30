@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>Categories Count</name>
+	<description>Вывод количества новостей, в которых указана категория в списке категорий</description>
+	<icon></icon>
+	<version></version>
+	<dleversion></dleversion>
+	<versioncompare>==</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>0</mnotice>
+	<mysqlinstall><![CDATA[]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[]]></mysqlenable>
+	<mysqldisable><![CDATA[]]></mysqldisable>
+	<mysqldelete><![CDATA[]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[]]></notice>
+	<file name="engine/inc/categories.php">
+		<operation action="before">
+			<searchcode><![CDATA[	function DisplayCategories($parentid = 0, $sublevelmarker = false) {
+		global $lang, $cat_info, $config, $dle_login_hash;]]></searchcode>
+			<replacecode><![CDATA[	$sub_count = $config['show_sub_cats'];
+	$news_count_in_array = [];
+	
+	if ( $config['no_date'] AND !$config['news_future'] ) {
+		$thisdate = date( "Y-m-d H:i:s", $_TIME );
+		$where_date = " date < '" . $thisdate . "'";
+	} else $where_date = "";
+	
+	$db->query( "SELECT category, COUNT(*) AS count FROM " . PREFIX . "_post WHERE" . $where_date . " GROUP BY category" );
+	$skip_parent_count = [];
+	
+	while ( $row = $db->get_row() ) {
+		if ( !$row['category'] ) continue;
+	
+		$cat_array = $temp_cat_array = explode(",", $row['category']);
+		
+		foreach ( $temp_cat_array as $value ) {
+			
+			if(!isset($news_count_in_array[$value])) $news_count_in_array[$value] = $row['count'];
+			else $news_count_in_array[$value] = $news_count_in_array[$value] + $row['count'];
+
+			if( $sub_count ) {
+
+				$temp_parent = $cat_info[$value]['parentid'];
+
+				while ( $temp_parent ) {
+
+					if( !in_array($temp_parent, $cat_array) ) {
+				
+						if(!isset($news_count_in_array[$temp_parent])) $news_count_in_array[$temp_parent] = $row['count'];
+						else $news_count_in_array[$temp_parent] = $news_count_in_array[$temp_parent] + $row['count'];
+						
+						$cat_array[] = $temp_parent;
+
+						if($cat_info[$temp_parent]['show_sub'] == 2) {
+							
+							if(!isset($skip_parent_count[$temp_parent])) $skip_parent_count[$temp_parent] = $row['count'];
+							else $skip_parent_count[$temp_parent] = $skip_parent_count[$temp_parent] + $row['count'];
+							
+						}
+
+					}
+
+					$temp_parent = $cat_info[$temp_parent]['parentid'];
+				}
+			}
+		}
+	}
+	
+	if( count( $skip_parent_count ) ) {
+		foreach ( $skip_parent_count as $key => $value ) {
+			$news_count_in_array[$key] = $news_count_in_array[$key] - $value;
+		}
+	}
+
+	foreach ( $news_count_in_array as $key => $value ) {
+		if($cat_info[$key]['id']) $cat_info[$key]['newscount'] = $value;
+	}
+
+	unset($news_count_in_array);
+
+	function get_category_childs_id($id) {
+        global $cat_info;
+      
+      	$cats = [];
+      	
+      	foreach( $cat_info as $item ) {
+          	if ( $item['parentid'] == $id ) {
+             	$cats[] = $item['id'];
+              	
+              	if ( $childs = get_category_childs_id($item['id']) ) {
+                  	$cats[] = $childs;
+                }
+            }
+        }
+      	
+      	return implode(',', $cats);
+    }]]></replacecode>
+		</operation>
+		<operation action="replace">
+			<searchcode><![CDATA[		$cat_item .= "<li class=\"dd-item\" data-id=\"{$cat_info[$id]['id']}\"><div class=\"dd-handle\"></div><div class=\"dd-content\">{$status}<b>ID:{$cat_info[$id]['id']}</b> {$link}]]></searchcode>
+			<replacecode><![CDATA[		$cat_info[$id]['newscount'] = intval($cat_info[$id]['newscount']);
+		$search_query = ['&search_cat%5B%5D=' . $id];
+		$childs_cats = get_category_childs_id($id);
+		$childs_cats = explode(',', $childs_cats);
+
+		foreach( $childs_cats as $value ) {
+          	$search_query[] = '&search_cat%5B%5D=' . $value;
+        }
+
+		$search_query = implode('', $search_query);
+
+		$cat_item .= "<li class=\"dd-item\" data-id=\"{$cat_info[$id]['id']}\"><div class=\"dd-handle\"></div><div class=\"dd-content\">{$status}<b>ID:{$cat_info[$id]['id']}</b> {$link} <span style=\"margin-left: 5px;\">[ <a href=\"/{$config['admin_path']}?mod=editnews&action=list{$search_query}\" target=\"_blank\">{$cat_info[$id]['newscount']}</a> ]</span>]]></replacecode>
+		</operation>
+	</file>
+</dleplugin>

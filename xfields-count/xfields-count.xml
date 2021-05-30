@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dleplugin>
+	<name>Xfields Count</name>
+	<description>Вывод количества новостей, в которых заполнено поле в списке доп-полей</description>
+	<icon></icon>
+	<version></version>
+	<dleversion></dleversion>
+	<versioncompare>less</versioncompare>
+	<upgradeurl></upgradeurl>
+	<filedelete>0</filedelete>
+	<needplugin></needplugin>
+	<mnotice>0</mnotice>
+	<mysqlinstall><![CDATA[]]></mysqlinstall>
+	<mysqlupgrade><![CDATA[]]></mysqlupgrade>
+	<mysqlenable><![CDATA[]]></mysqlenable>
+	<mysqldisable><![CDATA[]]></mysqldisable>
+	<mysqldelete><![CDATA[]]></mysqldelete>
+	<phpinstall><![CDATA[]]></phpinstall>
+	<phpupgrade><![CDATA[]]></phpupgrade>
+	<phpenable><![CDATA[]]></phpenable>
+	<phpdisable><![CDATA[]]></phpdisable>
+	<phpdelete><![CDATA[]]></phpdelete>
+	<notice><![CDATA[]]></notice>
+	<file name="engine/inc/xfields.php">
+		<operation action="replace">
+			<searchcode><![CDATA[			$x_list = "<ol class=\"dd-list\">";
+	
+			foreach ($xfields as $name => $value) {]]></searchcode>
+			<replacecode><![CDATA[			$xfields_count = [];
+			$q = $db->query("SELECT xfields FROM " . PREFIX . "_post");
+
+			while ($row = $db->get_row($q)) {
+				$row['xfields'] = stripslashes($row['xfields']);
+				$xfieldsdata = xfieldsdataload($row['xfields']);
+
+				foreach ($xfieldsdata as $name => $value) {
+					if ( !isset($xfields_count[$name]) ) {
+						$xfields_count[$name] = 0;
+					}
+
+					$xfields_count[$name]++;
+				}
+			}
+
+			$x_list = "<ol class=\"dd-list\">";
+
+			foreach ($xfields as $name => $value) {
+              	$count = intval($xfields_count[$value[0]]);
+              
+              	if ( $count ) {
+                  	$count_link = "<a href=\"/{$config['admin_path']}?mod=editnews&action=list&search_field={$value[0]}|\" target=\"_blank\">{$count}</a>";
+                } else {
+                  	$count_link = $count;
+                }]]></replacecode>
+		</operation>
+		<operation action="replace">
+			<searchcode><![CDATA[<b id=\"x_name\" class=\"s-el\">{$value[0]}</b>]]></searchcode>
+			<replacecode><![CDATA[<b id=\"x_name\" class=\"s-el\">{$value[0]}</b> <span style=\"float: left;margin-right: 15px;\" title=\"Количество новостей, в которых заполнено поле\">{$count_link}</span>]]></replacecode>
+		</operation>
+	</file>
+</dleplugin>
